@@ -9,6 +9,8 @@
  * - receitas: contratos/fontes de receita (recorrentes ou avulsos)
  * - despesas: despesas fixas/variáveis
  * - lancamentos: movimentação mensal real (receitas e despesas)
+ * 
+ * CORREÇÃO: 09/12/2025 - Bug gerar_lancamentos agora inclui receitas avulsas
  */
 
 // Headers CORS e JSON
@@ -637,20 +639,27 @@ try {
             break;
             
         // ==================== GERAR LANÇAMENTOS DO MÊS ====================
+        // CORRIGIDO em 09/12/2025: Agora inclui receitas avulsas e verifica período
         case 'gerar_lancamentos':
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $data = getJsonInput();
                 $mes_ano = $data['mes_ano'] ?? date('Y-m');
                 
                 $gerados = 0;
+                $primeiro_dia_mes = $mes_ano . '-01';
+                $ultimo_dia_mes = date('Y-m-t', strtotime($primeiro_dia_mes));
                 
-                // Gerar lançamentos de receitas recorrentes
-                $stmt = $pdo->query("
+                // Gerar lançamentos de receitas ativas (recorrentes E avulsas)
+                // Verifica se o mês está dentro do período data_inicio e data_fim
+                $stmt = $pdo->prepare("
                     SELECT r.*, c.razao_social as cliente_nome
                     FROM receitas r
                     LEFT JOIN clientes_cadastro c ON r.cliente_id = c.id
-                    WHERE r.status = 'ativo' AND r.tipo = 'recorrente'
+                    WHERE r.status = 'ativo'
+                      AND (r.data_inicio IS NULL OR r.data_inicio <= ?)
+                      AND (r.data_fim IS NULL OR r.data_fim >= ?)
                 ");
+                $stmt->execute([$ultimo_dia_mes, $primeiro_dia_mes]);
                 $receitas = $stmt->fetchAll();
                 
                 foreach ($receitas as $receita) {
@@ -662,8 +671,20 @@ try {
                     $check->execute([$receita['id'], $mes_ano]);
                     
                     if (!$check->fetch()) {
+                        // Para receitas avulsas, verificar se já foi gerada em algum mês
+                        if ($receita['tipo'] === 'avulso') {
+                            $checkAvulso = $pdo->prepare("SELECT id FROM lancamentos WHERE receita_id = ?");
+                            $checkAvulso->execute([$receita['id']]);
+                            if ($checkAvulso->fetch()) {
+                                continue; // Já foi gerada, pular
+                            }
+                        }
+                        
                         // Calcular data de vencimento
                         $dia = $receita['dia_vencimento'] ?: 1;
+                        // Validar dia do mês (evitar dia 31 em meses com 30 dias)
+                        $ultimo_dia = date('t', strtotime($primeiro_dia_mes));
+                        $dia = min($dia, $ultimo_dia);
                         $data_venc = $mes_ano . '-' . str_pad($dia, 2, '0', STR_PAD_LEFT);
                         
                         $insert = $pdo->prepare("
@@ -703,6 +724,9 @@ try {
                     if (!$check->fetch()) {
                         // Calcular data de vencimento
                         $dia = $despesa['dia_vencimento'] ?: 1;
+                        // Validar dia do mês
+                        $ultimo_dia = date('t', strtotime($primeiro_dia_mes));
+                        $dia = min($dia, $ultimo_dia);
                         $data_venc = $mes_ano . '-' . str_pad($dia, 2, '0', STR_PAD_LEFT);
                         
                         $insert = $pdo->prepare("
