@@ -1,0 +1,53 @@
+# ============================================================
+# SIS MIDAS BKF - CONFIGURAÇÕES APACHE
+# ============================================================
+
+# Habilitar reescrita de URL
+RewriteEngine On
+
+# Forçar HTTPS (descomente em produção)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Impedir listagem de diretórios
+Options -Indexes
+
+# Definir página padrão
+DirectoryIndex index.html index.php
+
+# Configurar charset
+AddDefaultCharset UTF-8
+
+# Compressão GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Cache de arquivos estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+</IfModule>
+
+# Headers de segurança
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "\.(sql|log|md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Proteger includes
+<FilesMatch "^config\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
