@@ -1693,8 +1693,8 @@ async function editReceita(id) {
         document.getElementById('receita-recorrencia').value = receita.recorrencia || 'Mensal';
         document.getElementById('receita-dia').value = receita.dia_vencimento || 10;
         document.getElementById('receita-status').value = receita.status || 'ativo';
-        document.getElementById('receita-data-inicio').value = receita.data_inicio || '';
-        document.getElementById('receita-data-fim').value = receita.data_fim || '';
+        document.getElementById('receita-data-inicio').value = formatDate(receita.data_inicio);
+        document.getElementById('receita-data-fim').value = formatDate(receita.data_fim);
         document.getElementById('receita-esforco').value = receita.nivel_esforco || 'Médio';
         document.getElementById('receita-score').value = receita.score_roi || 5;
         document.getElementById('receita-equipe').value = receita.equipe || '';
@@ -1723,8 +1723,8 @@ async function saveReceita() {
         recorrencia: document.getElementById('receita-recorrencia').value,
         dia_vencimento: parseInt(document.getElementById('receita-dia').value) || 10,
         status: document.getElementById('receita-status').value,
-        data_inicio: document.getElementById('receita-data-inicio').value || null,
-        data_fim: document.getElementById('receita-data-fim').value || null,
+        data_inicio: parseDate(document.getElementById('receita-data-inicio').value) || null,
+        data_fim: parseDate(document.getElementById('receita-data-fim').value) || null,
         nivel_esforco: document.getElementById('receita-esforco').value,
         score_roi: parseInt(document.getElementById('receita-score').value) || 5,
         equipe: document.getElementById('receita-equipe').value.trim(),
