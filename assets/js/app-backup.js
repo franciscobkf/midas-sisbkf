@@ -1380,10 +1380,7 @@ function renderClientesCadastro() {
                     <span class="badge badge-info">${cliente.total_receitas || 0} contratos</span>
                 </td>
                 <td>
-                    <div style="font-size: 13px;">
-                        <div><strong>${formatMoney(cliente.valor_total || 0)}</strong></div>
-                        ${parseFloat(cliente.valor_recebido || 0) > 0 ? `<div class="text-success" style="font-size: 11px;">✓ Recebido: ${formatMoney(cliente.valor_recebido)}</div>` : ''}
-                    </div>
+                    <strong>${formatMoney(cliente.valor_total || 0)}</strong>
                 </td>
                 <td>
                     <div class="table-actions">
@@ -1401,45 +1398,19 @@ function renderClientesCadastro() {
 }
 
 function openClienteCadastroModal(id = null) {
-    console.log('=== OPEN CLIENTE CADASTRO MODAL ===');
-    console.log('ID recebido no modal:', id);
-    console.log('Tipo do ID:', typeof id);
-    
     const form = document.getElementById('form-cliente-cadastro');
-    
-    // Só faz reset se for NOVO cliente (id = null ou undefined ou vazio)
-    if (!id) {
-        console.log('Fazendo RESET do form');
-        form.reset();
-    } else {
-        console.log('NÃO fazendo reset - modo edição');
-    }
-    
+    form.reset();
     form.dataset.id = id || '';
+    
     document.getElementById('modal-cliente-cadastro-title').textContent = id ? '✏️ Editar Cliente' : '➕ Novo Cliente';
     openModal('modal-cliente-cadastro');
-    
-    // Verificar valor após abrir
-    console.log('Valor razao_social após openModal:', document.getElementById('cc-razao-social').value);
 }
 
 async function editClienteCadastro(id) {
-    console.log('=== EDIT CLIENTE CADASTRO ===');
-    console.log('ID recebido:', id);
-    
     try {
-        const result = await api('clientes_cadastro', 'GET', null, id);
-        console.log('Resultado da API:', result);
-        
+        const result = await api(`clientes_cadastro&id=${id}`);
         const cliente = result.data;
-        console.log('Cliente:', cliente);
-        console.log('razao_social:', cliente.razao_social);
         
-        // Verificar se elementos existem
-        const el = document.getElementById('cc-razao-social');
-        console.log('Elemento cc-razao-social:', el);
-        
-        // PRIMEIRO preencher os campos
         document.getElementById('cc-razao-social').value = cliente.razao_social || '';
         document.getElementById('cc-nome-fantasia').value = cliente.nome_fantasia || '';
         document.getElementById('cc-cnpj-cpf').value = cliente.cnpj_cpf || '';
@@ -1454,15 +1425,8 @@ async function editClienteCadastro(id) {
         document.getElementById('cc-contato-cargo').value = cliente.contato_cargo || '';
         document.getElementById('cc-observacoes').value = cliente.observacoes || '';
         
-        console.log('Valor setado:', document.getElementById('cc-razao-social').value);
-        
-        // DEPOIS abrir modal (sem reset porque tem id)
         openClienteCadastroModal(id);
-        
-        console.log('Valor após abrir modal:', document.getElementById('cc-razao-social').value);
-        
     } catch (error) {
-        console.error('ERRO:', error);
         showToast(error.message, 'error');
     }
 }
@@ -1498,7 +1462,7 @@ async function saveClienteCadastro() {
     
     try {
         if (id) {
-            await api('clientes_cadastro', 'PUT', data, id);
+            await api(`clientes_cadastro&id=${id}`, 'PUT', data);
             showToast('Cliente atualizado!');
         } else {
             await api('clientes_cadastro', 'POST', data);
@@ -1516,7 +1480,7 @@ async function deleteClienteCadastro(id) {
     if (!confirm('Deseja excluir este cliente?')) return;
     
     try {
-        await api('clientes_cadastro', 'DELETE', null, id);
+        await api(`clientes_cadastro&id=${id}`, 'DELETE');
         showToast('Cliente excluído!');
         loadClientesCadastro();
     } catch (error) {
@@ -1679,7 +1643,7 @@ function openReceitaModal(id = null) {
 
 async function editReceita(id) {
     try {
-        const result = await api('receita', 'GET', null, id);
+        const result = await api(`receitas&id=${id}`);
         const receita = result.data;
         
         openReceitaModal(id);
@@ -1743,7 +1707,7 @@ async function saveReceita() {
     
     try {
         if (id) {
-            await api('receita', 'PUT', data, id);
+            await api(`receitas&id=${id}`, 'PUT', data);
             showToast('Receita atualizada!');
         } else {
             await api('receitas', 'POST', data);
@@ -1760,7 +1724,7 @@ async function deleteReceita(id) {
     if (!confirm('Deseja excluir esta receita?')) return;
     
     try {
-        await api('receita', 'DELETE', null, id);
+        await api(`receitas&id=${id}`, 'DELETE');
         showToast('Receita excluída!');
         loadReceitas();
     } catch (error) {

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Tempo de geração: 09/12/2025 às 09:41
+-- Tempo de geração: 09/12/2025 às 11:48
 -- Versão do servidor: 5.7.23-23
 -- Versão do PHP: 8.1.33
 
@@ -131,8 +131,8 @@ CREATE TABLE `clientes_cadastro` (
 --
 
 INSERT INTO `clientes_cadastro` (`id`, `razao_social`, `nome_fantasia`, `cnpj_cpf`, `email`, `telefone`, `whatsapp`, `endereco`, `cidade`, `estado`, `cep`, `contato_nome`, `contato_cargo`, `observacoes`, `ativo`, `created_at`, `updated_at`) VALUES
-(1, 'Dolarize', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Benefício Membro BNI', 1, '2025-12-09 02:17:08', '2025-12-09 02:17:08'),
-(2, '', '', '', '', '', '', '', '', '', '', '', '', '', 1, '2025-12-09 04:28:52', '2025-12-09 04:28:52');
+(1, 'André e Andréia', 'Dolarize', '', '', '', '', '', '', '', '', '', '', '', 1, '2025-12-09 02:17:08', '2025-12-09 13:19:26'),
+(2, '', '', '', '', '', '', '', '', '', '', '', '', '', 0, '2025-12-09 04:28:52', '2025-12-09 13:19:35');
 
 -- --------------------------------------------------------
 
@@ -236,7 +236,7 @@ CREATE TABLE `lancamentos` (
 
 INSERT INTO `lancamentos` (`id`, `tipo`, `cliente_id`, `receita_id`, `despesa_id`, `descricao`, `valor`, `moeda`, `data_vencimento`, `data_pagamento`, `status`, `mes_referencia`, `observacoes`, `created_at`, `updated_at`) VALUES
 (1, 'receita', 1, 1, NULL, 'Dolarize', 50.00, 'BRL', '2026-01-08', NULL, 'pendente', '2026-01', NULL, '2025-12-09 02:18:00', '2025-12-09 02:50:59'),
-(2, 'receita', 1, 1, NULL, 'Dolarize', 50.00, 'BRL', '2025-12-08', NULL, 'pendente', '2025-12', NULL, '2025-12-09 03:35:21', '2025-12-09 03:35:21');
+(2, 'receita', 1, 1, NULL, 'Dolarize', 50.00, 'BRL', '2025-12-08', '2025-12-09', 'pago', '2025-12', NULL, '2025-12-09 03:35:21', '2025-12-09 13:33:55');
 
 -- --------------------------------------------------------
 
@@ -270,7 +270,7 @@ CREATE TABLE `receitas` (
 --
 
 INSERT INTO `receitas` (`id`, `cliente_id`, `fonte_receita_id`, `descricao`, `valor`, `moeda`, `tipo`, `recorrencia`, `dia_vencimento`, `data_inicio`, `data_fim`, `nivel_esforco`, `equipe`, `score_roi`, `status`, `observacoes`, `created_at`, `updated_at`) VALUES
-(1, 1, 6, 'Contrato Dolarize', 50.00, 'BRL', 'recorrente', 'Mensal', 8, NULL, NULL, 'Baixo', 'Francisco', 5, 'ativo', 'Benefício Membro BNI', '2025-12-09 02:17:08', '2025-12-09 02:17:08');
+(1, 1, 6, 'Contrato Dolarize', 50.00, 'BRL', 'recorrente', 'Mensal', 8, NULL, NULL, 'Baixo', 'Francisco', 10, 'ativo', 'Benefício Membro BNI', '2025-12-09 02:17:08', '2025-12-09 13:27:15');
 
 -- --------------------------------------------------------
 
@@ -296,7 +296,7 @@ CREATE TABLE `vw_resumo_mensal` (
 --
 DROP TABLE IF EXISTS `vw_resumo_mensal`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`cpses_si11r1any2`@`localhost` SQL SECURITY DEFINER VIEW `vw_resumo_mensal`  AS SELECT `lancamentos`.`mes_referencia` AS `mes_referencia`, sum((case when ((`lancamentos`.`tipo` = 'receita') and (`lancamentos`.`status` = 'pago')) then `lancamentos`.`valor` else 0 end)) AS `receitas_recebidas`, sum((case when ((`lancamentos`.`tipo` = 'receita') and (`lancamentos`.`status` = 'pendente')) then `lancamentos`.`valor` else 0 end)) AS `receitas_pendentes`, sum((case when ((`lancamentos`.`tipo` = 'despesa') and (`lancamentos`.`status` = 'pago')) then `lancamentos`.`valor` else 0 end)) AS `despesas_pagas`, sum((case when ((`lancamentos`.`tipo` = 'despesa') and (`lancamentos`.`status` = 'pendente')) then `lancamentos`.`valor` else 0 end)) AS `despesas_pendentes`, sum((case when (`lancamentos`.`tipo` = 'receita') then `lancamentos`.`valor` else 0 end)) AS `total_receitas`, sum((case when (`lancamentos`.`tipo` = 'despesa') then `lancamentos`.`valor` else 0 end)) AS `total_despesas`, sum((case when (`lancamentos`.`tipo` = 'receita') then `lancamentos`.`valor` else -(`lancamentos`.`valor`) end)) AS `saldo` FROM `lancamentos` WHERE (`lancamentos`.`status` <> 'cancelado') GROUP BY `lancamentos`.`mes_referencia` ORDER BY `lancamentos`.`mes_referencia` DESC ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`sisbkf`@`localhost` SQL SECURITY DEFINER VIEW `vw_resumo_mensal`  AS SELECT `lancamentos`.`mes_referencia` AS `mes_referencia`, sum((case when ((`lancamentos`.`tipo` = 'receita') and (`lancamentos`.`status` = 'pago')) then `lancamentos`.`valor` else 0 end)) AS `receitas_recebidas`, sum((case when ((`lancamentos`.`tipo` = 'receita') and (`lancamentos`.`status` = 'pendente')) then `lancamentos`.`valor` else 0 end)) AS `receitas_pendentes`, sum((case when ((`lancamentos`.`tipo` = 'despesa') and (`lancamentos`.`status` = 'pago')) then `lancamentos`.`valor` else 0 end)) AS `despesas_pagas`, sum((case when ((`lancamentos`.`tipo` = 'despesa') and (`lancamentos`.`status` = 'pendente')) then `lancamentos`.`valor` else 0 end)) AS `despesas_pendentes`, sum((case when (`lancamentos`.`tipo` = 'receita') then `lancamentos`.`valor` else 0 end)) AS `total_receitas`, sum((case when (`lancamentos`.`tipo` = 'despesa') then `lancamentos`.`valor` else 0 end)) AS `total_despesas`, sum((case when (`lancamentos`.`tipo` = 'receita') then `lancamentos`.`valor` else -(`lancamentos`.`valor`) end)) AS `saldo` FROM `lancamentos` WHERE (`lancamentos`.`status` <> 'cancelado') GROUP BY `lancamentos`.`mes_referencia` ORDER BY `lancamentos`.`mes_referencia` DESC ;
 
 --
 -- Índices para tabelas despejadas

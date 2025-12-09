@@ -69,7 +69,7 @@ try {
                 WHERE mes_referencia = ?
             ");
             $stmt->execute([$mes_ano]);
-            $resumo_mes = $stmt->fetch(PDO::FETCH_ASSOC);
+            $resumo_mes = $stmt->fetch();
             
             // Se não existir na view, calcular manualmente
             if (!$resumo_mes) {
@@ -93,7 +93,7 @@ try {
                     WHERE tipo = 'receita' AND mes_referencia = ? AND status != 'cancelado'
                 ");
                 $stmt->execute([$mes_ano]);
-                $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+                $rec = $stmt->fetch();
                 $resumo_mes['receitas_recebidas'] = $rec['recebidas'];
                 $resumo_mes['receitas_pendentes'] = $rec['pendentes'];
                 $resumo_mes['total_receitas'] = $rec['total'];
@@ -108,7 +108,7 @@ try {
                     WHERE tipo = 'despesa' AND mes_referencia = ? AND status != 'cancelado'
                 ");
                 $stmt->execute([$mes_ano]);
-                $desp = $stmt->fetch(PDO::FETCH_ASSOC);
+                $desp = $stmt->fetch();
                 $resumo_mes['despesas_pagas'] = $desp['pagas'];
                 $resumo_mes['despesas_pendentes'] = $desp['pendentes'];
                 $resumo_mes['total_despesas'] = $desp['total'];
@@ -118,11 +118,11 @@ try {
             
             // Total clientes ativos
             $stmt = $pdo->query("SELECT COUNT(*) as total FROM clientes_cadastro WHERE ativo = 1");
-            $total_clientes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+            $total_clientes = $stmt->fetch()['total'];
             
             // Total despesas cadastradas (fixas)
             $stmt = $pdo->query("SELECT COUNT(*) as total FROM despesas WHERE ativo = 1");
-            $total_despesas_cadastradas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+            $total_despesas_cadastradas = $stmt->fetch()['total'];
             
             // Calcular lucro líquido e margem
             $total_receitas = floatval($resumo_mes['total_receitas']);
@@ -216,7 +216,7 @@ try {
                 // Buscar cliente específico
                 $stmt = $pdo->prepare("SELECT * FROM clientes_cadastro WHERE id = ?");
                 $stmt->execute([$id]);
-                $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
+                $cliente = $stmt->fetch();
                 
                 if (!$cliente) {
                     http_response_code(404);
@@ -226,7 +226,7 @@ try {
                 // Buscar receitas do cliente
                 $stmt = $pdo->prepare("SELECT * FROM receitas WHERE cliente_id = ? ORDER BY created_at DESC");
                 $stmt->execute([$id]);
-                $cliente['receitas'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $cliente['receitas'] = $stmt->fetchAll();
                 
                 // Buscar anexos do cliente
                 $stmt = $pdo->prepare("SELECT * FROM clientes_anexos WHERE cliente_id = ? ORDER BY created_at DESC");
@@ -356,7 +356,7 @@ try {
                     WHERE r.id = ?
                 ");
                 $stmt->execute([$id]);
-                $receita = $stmt->fetch(PDO::FETCH_ASSOC);
+                $receita = $stmt->fetch();
                 
                 if (!$receita) {
                     http_response_code(404);
@@ -541,7 +541,7 @@ try {
                     WHERE l.id = ?
                 ");
                 $stmt->execute([$id]);
-                $lancamento = $stmt->fetch(PDO::FETCH_ASSOC);
+                $lancamento = $stmt->fetch();
                 
                 if (!$lancamento) {
                     http_response_code(404);
@@ -585,7 +585,7 @@ try {
             }
             break;
             
-        // Marcar lançamento como pago (legacy - PUT)
+        // Marcar lançamento como pago
         case 'lancamento_pagar':
             $id = $_GET['id'] ?? 0;
             
@@ -603,36 +603,6 @@ try {
                 ]);
                 
                 respond(['message' => 'Lançamento marcado como pago']);
-            }
-            break;
-            
-        // Marcar lançamento como pago/pendente (toggle) - usado pelo JS
-        case 'marcar_pago':
-            $id = $_GET['id'] ?? 0;
-            
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $data = getJsonInput();
-                $pago = $data['pago'] ?? true;
-                
-                if ($pago) {
-                    // Marcar como pago
-                    $stmt = $pdo->prepare("
-                        UPDATE lancamentos 
-                        SET status = 'pago', data_pagamento = ?
-                        WHERE id = ?
-                    ");
-                    $stmt->execute([date('Y-m-d'), $id]);
-                    respond(['message' => 'Lançamento marcado como pago', 'status' => 'pago']);
-                } else {
-                    // Desmarcar - voltar para pendente
-                    $stmt = $pdo->prepare("
-                        UPDATE lancamentos 
-                        SET status = 'pendente', data_pagamento = NULL
-                        WHERE id = ?
-                    ");
-                    $stmt->execute([$id]);
-                    respond(['message' => 'Lançamento desmarcado', 'status' => 'pendente']);
-                }
             }
             break;
             
@@ -789,7 +759,7 @@ try {
                 // Buscar caminho do arquivo
                 $stmt = $pdo->prepare("SELECT caminho FROM clientes_anexos WHERE id = ?");
                 $stmt->execute([$id]);
-                $anexo = $stmt->fetch(PDO::FETCH_ASSOC);
+                $anexo = $stmt->fetch();
                 
                 if ($anexo) {
                     // Deletar arquivo físico
@@ -906,110 +876,17 @@ try {
             ]);
             break;
             
-        // ==================== CLIENTES CADASTRO (CRUD completo) ====================
+        // ==================== CLIENTES CADASTRO (lista para selects) ====================
         case 'clientes_cadastro':
-            $id = $_GET['id'] ?? null;
-            
-            if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-                if ($id) {
-                    // Buscar cliente específico
-                    $stmt = $pdo->prepare("SELECT * FROM clientes_cadastro WHERE id = ?");
-                    $stmt->execute([$id]);
-                    $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
-                    
-                    if (!$cliente) {
-                        http_response_code(404);
-                        respond(['error' => 'Cliente não encontrado'], false);
-                    }
-                    
-                    respond($cliente);
-                } else {
-                    // Listar todos os clientes com valores calculados
-                    $stmt = $pdo->query("
-                        SELECT c.id, c.razao_social, c.nome_fantasia, c.cnpj_cpf, c.email, c.telefone, c.whatsapp, c.contato_nome, c.ativo,
-                               (SELECT COUNT(*) FROM receitas r WHERE r.cliente_id = c.id AND r.status = 'ativo') as total_receitas,
-                               (SELECT COALESCE(SUM(r.valor), 0) FROM receitas r WHERE r.cliente_id = c.id AND r.status = 'ativo') as valor_receitas,
-                               (SELECT COALESCE(SUM(r.valor), 0) FROM receitas r WHERE r.cliente_id = c.id AND r.status = 'ativo') as valor_total,
-                               (SELECT COALESCE(SUM(l.valor), 0) FROM lancamentos l WHERE l.cliente_id = c.id AND l.tipo = 'receita' AND l.status = 'pago') as valor_recebido
-                        FROM clientes_cadastro c 
-                        WHERE c.ativo = 1
-                        ORDER BY c.razao_social
-                    ");
-                    respond($stmt->fetchAll());
-                }
-            }
-            elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                // Criar novo cliente
-                $data = getJsonInput();
-                
-                $stmt = $pdo->prepare("
-                    INSERT INTO clientes_cadastro 
-                    (razao_social, nome_fantasia, cnpj_cpf, email, telefone, whatsapp, 
-                     endereco, cidade, estado, cep, contato_nome, contato_cargo, observacoes, ativo)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-                ");
-                $stmt->execute([
-                    $data['razao_social'] ?? '',
-                    $data['nome_fantasia'] ?? '',
-                    $data['cnpj_cpf'] ?? '',
-                    $data['email'] ?? '',
-                    $data['telefone'] ?? '',
-                    $data['whatsapp'] ?? '',
-                    $data['endereco'] ?? '',
-                    $data['cidade'] ?? '',
-                    $data['estado'] ?? '',
-                    $data['cep'] ?? '',
-                    $data['contato_nome'] ?? '',
-                    $data['contato_cargo'] ?? '',
-                    $data['observacoes'] ?? ''
-                ]);
-                
-                respond(['id' => $pdo->lastInsertId(), 'message' => 'Cliente criado com sucesso']);
-            }
-            elseif ($_SERVER['REQUEST_METHOD'] === 'PUT') {
-                // Atualizar cliente
-                if (!$id) {
-                    http_response_code(400);
-                    respond(['error' => 'ID não informado'], false);
-                }
-                $data = getJsonInput();
-                
-                $stmt = $pdo->prepare("
-                    UPDATE clientes_cadastro 
-                    SET razao_social = ?, nome_fantasia = ?, cnpj_cpf = ?, email = ?, 
-                        telefone = ?, whatsapp = ?, endereco = ?, cidade = ?, estado = ?, 
-                        cep = ?, contato_nome = ?, contato_cargo = ?, observacoes = ?
-                    WHERE id = ?
-                ");
-                $stmt->execute([
-                    $data['razao_social'] ?? '',
-                    $data['nome_fantasia'] ?? '',
-                    $data['cnpj_cpf'] ?? '',
-                    $data['email'] ?? '',
-                    $data['telefone'] ?? '',
-                    $data['whatsapp'] ?? '',
-                    $data['endereco'] ?? '',
-                    $data['cidade'] ?? '',
-                    $data['estado'] ?? '',
-                    $data['cep'] ?? '',
-                    $data['contato_nome'] ?? '',
-                    $data['contato_cargo'] ?? '',
-                    $data['observacoes'] ?? '',
-                    $id
-                ]);
-                
-                respond(['message' => 'Cliente atualizado com sucesso']);
-            }
-            elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
-                // Desativar cliente (soft delete)
-                if (!$id) {
-                    http_response_code(400);
-                    respond(['error' => 'ID não informado'], false);
-                }
-                $stmt = $pdo->prepare("UPDATE clientes_cadastro SET ativo = 0 WHERE id = ?");
-                $stmt->execute([$id]);
-                respond(['message' => 'Cliente desativado com sucesso']);
-            }
+            $stmt = $pdo->query("
+                SELECT c.id, c.razao_social, c.nome_fantasia, c.cnpj_cpf, c.email, c.telefone, c.ativo,
+                       (SELECT COUNT(*) FROM receitas r WHERE r.cliente_id = c.id AND r.status = 'ativo') as total_receitas,
+                       (SELECT COALESCE(SUM(r.valor), 0) FROM receitas r WHERE r.cliente_id = c.id AND r.status = 'ativo') as valor_receitas
+                FROM clientes_cadastro c 
+                WHERE c.ativo = 1
+                ORDER BY c.razao_social
+            ");
+            respond($stmt->fetchAll());
             break;
             
         // ==================== CATEGORIAS DE DESPESA (CRUD) ====================

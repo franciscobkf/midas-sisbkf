@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIS Midas BKF - Sistema Financeiro</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="https://bkf.group/favicon.ico" type="image/x-icon">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="https://bkf.group/imagens/logo-bkf-branca2.png" alt="BKF Group">
+          <div class="sidebar-logo-text">
+            <span class="sidebar-logo-title">SIS Midas</span>
+            <span class="sidebar-logo-subtitle">Sistema Financeiro</span>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Principal</div>
+          <button class="nav-item active" data-page="dashboard">
+            <span class="nav-item-icon">📊</span>
+            Dashboard
+          </button>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Cadastros</div>
+          <button class="nav-item" data-page="clientes-cadastro">
+            <span class="nav-item-icon">🏢</span>
+            Clientes
+          </button>
+          <button class="nav-item" data-page="receitas">
+            <span class="nav-item-icon">💰</span>
+            Receitas/Contratos
+          </button>
+          <button class="nav-item" data-page="despesas">
+            <span class="nav-item-icon">💸</span>
+            Despesas Fixas
+          </button>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Financeiro</div>
+          <button class="nav-item" data-page="lancamentos">
+            <span class="nav-item-icon">📋</span>
+            Lançamentos do Mês
+          </button>
+        </div>
+        
+        <div class="nav-section">
+          <div class="nav-section-title">Sistema</div>
+          <button class="nav-item" data-page="configuracoes">
+            <span class="nav-item-icon">⚙️</span>
+            Configurações
+          </button>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-text">
+          SIS Midas BKF v3.0<br>
+          © 2025 BKF Group
+        </div>
+      </div>
+    </aside>
+    
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+      
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <button class="menu-toggle" id="menu-toggle">☰</button>
+          <div>
+            <h1 class="header-title" id="header-title">Dashboard</h1>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="header-month-selector">
+            <span>📅</span>
+            <select id="mes-seletor">
+              <!-- Preenchido via JS -->
+            </select>
+          </div>
+        </div>
+      </header>
+      
+      <!-- Page Content -->
+      <div class="page-content">
+        
+        <!-- DASHBOARD -->
+        <section id="page-dashboard" class="page-section active">
+          <div id="dashboard-content">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- CLIENTES CADASTRO (v3.0) -->
+        <section id="page-clientes-cadastro" class="page-section">
+          <div class="d-flex justify-between align-center mb-3">
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700;">🏢 Cadastro de Clientes</h2>
+              <p class="text-muted" style="font-size: 13px;">Gerencie o cadastro completo dos seus clientes</p>
+            </div>
+            <button class="btn btn-primary" onclick="openClienteCadastroModal()">
+              ➕ Novo Cliente
+            </button>
+          </div>
+          <div class="card">
+            <div id="clientes-cadastro-list">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- RECEITAS/CONTRATOS (v3.0) -->
+        <section id="page-receitas" class="page-section">
+          <div class="d-flex justify-between align-center mb-3">
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700;">💰 Receitas / Contratos</h2>
+              <p class="text-muted" style="font-size: 13px;">Gerencie contratos e receitas dos clientes</p>
+            </div>
+            <button class="btn btn-primary" onclick="openReceitaModal()">
+              ➕ Nova Receita
+            </button>
+          </div>
+          <div class="card">
+            <div id="receitas-list">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- DESPESAS -->
+        <section id="page-despesas" class="page-section">
+          <div class="d-flex justify-between align-center mb-3">
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700;">💸 Despesas Fixas</h2>
+              <p class="text-muted" style="font-size: 13px;">Cadastre suas despesas fixas e recorrentes</p>
+            </div>
+            <button class="btn btn-primary" onclick="openDespesaModal()">
+              ➕ Nova Despesa
+            </button>
+          </div>
+          <div class="card">
+            <div id="despesas-list">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- LANÇAMENTOS -->
+        <section id="page-lancamentos" class="page-section">
+          <div class="d-flex justify-between align-center mb-3">
+            <div>
+              <h2 style="font-size: 18px; font-weight: 700;">📋 Lançamentos do Mês</h2>
+              <p class="text-muted" style="font-size: 13px;">Acompanhe receitas e despesas do mês selecionado</p>
+            </div>
+          </div>
+          <div id="lancamentos-list">
+            <div class="loading">
+              <div class="loading-spinner"></div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- CONFIGURAÇÕES -->
+        <section id="page-configuracoes" class="page-section">
+          <div class="mb-4">
+            <h2 style="font-size: 18px; font-weight: 700;">⚙️ Configurações do Sistema</h2>
+            <p class="text-muted" style="font-size: 13px;">Gerencie categorias, fontes de receita e outras configurações</p>
+          </div>
+          
+          <div class="config-grid">
+            <!-- Fontes de Receita -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 700;">💰 Fontes de Receita</h3>
+                  <p class="text-muted" style="font-size: 12px;">Tipos de receita (Fee Mensal, Projeto, etc.)</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openFonteModal()">
+                  ➕ Nova
+                </button>
+              </div>
+              <div class="card-body" id="fontes-list">
+                <div class="loading">
+                  <div class="loading-spinner"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Categorias de Despesas -->
+            <div class="card">
+              <div class="card-header">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 700;">📂 Categorias de Despesas</h3>
+                  <p class="text-muted" style="font-size: 12px;">Classificação das despesas</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openCategoriaModal()">
+                  ➕ Nova
+                </button>
+              </div>
+              <div class="card-body" id="categorias-list">
+                <div class="loading">
+                  <div class="loading-spinner"></div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Configurações Gerais -->
+            <div class="card" style="grid-column: 1 / -1;">
+              <div class="card-header">
+                <div>
+                  <h3 style="font-size: 16px; font-weight: 700;">🔧 Configurações Gerais</h3>
+                  <p class="text-muted" style="font-size: 12px;">Cotação do dólar e outras configurações</p>
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="saveConfiguracoes()">
+                  💾 Salvar
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Cotação do Dólar (R$)</label>
+                    <input type="number" step="0.01" class="form-input" id="config-cotacao" placeholder="6.00">
+                    <div class="form-hint">Usada para converter valores em USD para BRL</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Nome da Empresa</label>
+                    <input type="text" class="form-input" id="config-empresa" placeholder="BKF Group">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+    </main>
+  </div>
+  
+  <!-- ========== MODAIS ========== -->
+  
+  <!-- Modal Cliente -->
+  <div class="modal-overlay" id="modal-cliente">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-cliente-title">➕ Novo Cliente</h3>
+        <button class="modal-close" onclick="closeModal('modal-cliente')">×</button>
+      </div>
+      <form id="form-cliente" onsubmit="saveCliente(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nome do Cliente <span class="form-label-required">*</span></label>
+              <input type="text" class="form-input" id="cliente-nome" required placeholder="Ex: Empresa XYZ">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fonte de Receita</label>
+              <select class="form-select" id="cliente-fonte">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor <span class="form-label-required">*</span></label>
+              <input type="number" step="0.01" class="form-input" id="cliente-valor" required placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moeda</label>
+              <select class="form-select" id="cliente-moeda">
+                <option value="BRL">R$ (Real)</option>
+                <option value="USD">US$ (Dólar)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Recorrência</label>
+              <select class="form-select" id="cliente-recorrencia">
+                <option value="Mensal">Mensal</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+                <option value="Única">Única (sem repetição)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dia de Vencimento</label>
+              <input type="number" class="form-input" id="cliente-dia" min="1" max="28" value="10" placeholder="10">
+              <div class="form-hint">Dia do mês para cobrança (1-28)</div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="cliente-status">
+                <option value="Ativo">Ativo</option>
+                <option value="Inativo">Inativo</option>
+                <option value="Prospect">Prospect</option>
+                <option value="Pausado">Pausado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nível de Esforço</label>
+              <select class="form-select" id="cliente-esforco">
+                <option value="Baixo">Baixo</option>
+                <option value="Médio" selected>Médio</option>
+                <option value="Alto">Alto</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Equipe Responsável</label>
+            <input type="text" class="form-input" id="cliente-equipe" placeholder="Ex: Francisco, Viviane">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-textarea" id="cliente-observacoes" placeholder="Notas adicionais sobre o cliente..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cliente')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Despesa -->
+  <div class="modal-overlay" id="modal-despesa">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-despesa-title">➕ Nova Despesa</h3>
+        <button class="modal-close" onclick="closeModal('modal-despesa')">×</button>
+      </div>
+      <form id="form-despesa" onsubmit="saveDespesa(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Descrição <span class="form-label-required">*</span></label>
+            <input type="text" class="form-input" id="despesa-descricao" required placeholder="Ex: Aluguel, Internet, etc.">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" id="despesa-categoria">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Recorrência</label>
+              <select class="form-select" id="despesa-recorrencia">
+                <option value="Mensal">Mensal</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+                <option value="Única">Única (sem repetição)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor <span class="form-label-required">*</span></label>
+              <input type="number" step="0.01" class="form-input" id="despesa-valor" required placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moeda</label>
+              <select class="form-select" id="despesa-moeda">
+                <option value="BRL">R$ (Real)</option>
+                <option value="USD">US$ (Dólar)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Dia de Vencimento</label>
+            <input type="number" class="form-input" id="despesa-dia" min="1" max="28" value="10" placeholder="10">
+            <div class="form-hint">Dia do mês para pagamento (1-28)</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-textarea" id="despesa-observacoes" placeholder="Notas adicionais..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-despesa')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Lançamento -->
+  <div class="modal-overlay" id="modal-lancamento">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-lancamento-title">➕ Novo Lançamento</h3>
+        <button class="modal-close" onclick="closeModal('modal-lancamento')">×</button>
+      </div>
+      <form id="form-lancamento" onsubmit="saveLancamento(event)">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tipo <span class="form-label-required">*</span></label>
+              <select class="form-select" id="lancamento-tipo" required>
+                <option value="receita">💰 Receita</option>
+                <option value="despesa">📉 Despesa</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data de Vencimento <span class="form-label-required">*</span></label>
+              <input type="date" class="form-input" id="lancamento-vencimento" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Descrição <span class="form-label-required">*</span></label>
+            <input type="text" class="form-input" id="lancamento-descricao" required placeholder="Descrição do lançamento">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor <span class="form-label-required">*</span></label>
+              <input type="number" step="0.01" class="form-input" id="lancamento-valor" required placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moeda</label>
+              <select class="form-select" id="lancamento-moeda">
+                <option value="BRL">R$ (Real)</option>
+                <option value="USD">US$ (Dólar)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-textarea" id="lancamento-observacoes" placeholder="Notas adicionais..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-lancamento')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Fonte de Receita -->
+  <div class="modal-overlay" id="modal-fonte">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-fonte-title">➕ Nova Fonte de Receita</h3>
+        <button class="modal-close" onclick="closeModal('modal-fonte')">×</button>
+      </div>
+      <form id="form-fonte">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nome <span class="form-label-required">*</span></label>
+            <input type="text" class="form-input" id="fonte-nome" required placeholder="Ex: Fee Mensal, Projeto Avulso">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-textarea" id="fonte-descricao" placeholder="Descrição opcional..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-fonte')">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="submitFonte()">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Categoria de Despesa -->
+  <div class="modal-overlay" id="modal-categoria">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-categoria-title">➕ Nova Categoria</h3>
+        <button class="modal-close" onclick="closeModal('modal-categoria')">×</button>
+      </div>
+      <form id="form-categoria">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Nome <span class="form-label-required">*</span></label>
+            <input type="text" class="form-input" id="categoria-nome" required placeholder="Ex: Pessoal, Operacional, Marketing">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descrição</label>
+            <textarea class="form-textarea" id="categoria-descricao" placeholder="Descrição opcional..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-categoria')">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="submitCategoria()">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Cliente Cadastro (v3.0) -->
+  <div class="modal-overlay" id="modal-cliente-cadastro">
+    <div class="modal" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-cliente-cadastro-title">➕ Novo Cliente</h3>
+        <button class="modal-close" onclick="closeModal('modal-cliente-cadastro')">×</button>
+      </div>
+      <form id="form-cliente-cadastro">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label">Razão Social / Nome <span class="form-label-required">*</span></label>
+              <input type="text" class="form-input" id="cc-razao-social" required placeholder="Nome completo ou razão social">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nome Fantasia</label>
+              <input type="text" class="form-input" id="cc-nome-fantasia" placeholder="Nome fantasia">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">CNPJ / CPF</label>
+              <input type="text" class="form-input" id="cc-cnpj-cpf" placeholder="00.000.000/0000-00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="cc-email" placeholder="email@empresa.com">
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Telefone</label>
+              <input type="text" class="form-input" id="cc-telefone" placeholder="(00) 0000-0000">
+            </div>
+            <div class="form-group">
+              <label class="form-label">WhatsApp</label>
+              <input type="text" class="form-input" id="cc-whatsapp" placeholder="(00) 00000-0000">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Endereço</label>
+            <input type="text" class="form-input" id="cc-endereco" placeholder="Rua, número, complemento">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label">Cidade</label>
+              <input type="text" class="form-input" id="cc-cidade" placeholder="Cidade">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <select class="form-select" id="cc-estado">
+                <option value="">UF</option>
+                <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">CEP</label>
+              <input type="text" class="form-input" id="cc-cep" placeholder="00000-000">
+            </div>
+          </div>
+          
+          <div style="border-top: 1px solid var(--line); margin: 16px 0; padding-top: 16px;">
+            <div class="form-label" style="margin-bottom: 12px; font-weight: 600;">📞 Contato Principal</div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nome do Contato</label>
+              <input type="text" class="form-input" id="cc-contato-nome" placeholder="Nome da pessoa de contato">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cargo</label>
+              <input type="text" class="form-input" id="cc-contato-cargo" placeholder="Ex: Diretor, Gerente">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-textarea" id="cc-observacoes" placeholder="Notas adicionais sobre o cliente..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-cliente-cadastro')">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="submitClienteCadastro()">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Modal Receita (v3.0) -->
+  <div class="modal-overlay" id="modal-receita">
+    <div class="modal" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-receita-title">➕ Nova Receita</h3>
+        <button class="modal-close" onclick="closeModal('modal-receita')">×</button>
+      </div>
+      <form id="form-receita">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group" style="flex: 2;">
+              <label class="form-label">Cliente <span class="form-label-required">*</span></label>
+              <select class="form-select" id="receita-cliente" required>
+                <option value="">Selecione o cliente...</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Fonte de Receita</label>
+              <select class="form-select" id="receita-fonte">
+                <option value="">Selecione...</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Descrição do Contrato</label>
+            <input type="text" class="form-input" id="receita-descricao" placeholder="Ex: Fee Mensal, Projeto Site, etc.">
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Valor <span class="form-label-required">*</span></label>
+              <input type="number" step="0.01" class="form-input" id="receita-valor" required placeholder="0,00">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moeda</label>
+              <select class="form-select" id="receita-moeda">
+                <option value="BRL">R$ (Real)</option>
+                <option value="USD">US$ (Dólar)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo</label>
+              <select class="form-select" id="receita-tipo">
+                <option value="recorrente">Recorrente</option>
+                <option value="avulso">Avulso (único)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Recorrência</label>
+              <select class="form-select" id="receita-recorrencia">
+                <option value="Mensal">Mensal</option>
+                <option value="Trimestral">Trimestral</option>
+                <option value="Semestral">Semestral</option>
+                <option value="Anual">Anual</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dia Vencimento</label>
+              <input type="number" class="form-input" id="receita-dia" min="1" max="28" value="10">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-select" id="receita-status">
+                <option value="ativo">Ativo</option>
+                <option value="pausado">Pausado</option>
+                <option value="encerrado">Encerrado</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Data Início</label>
+              <input type="date" class="form-input" id="receita-data-inicio">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Data Fim</label>
+              <input type="date" class="form-input" id="receita-data-fim">
+              <div class="form-hint">Deixe vazio se contrato vigente</div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nível de Esforço</label>
+              <select class="form-select" id="receita-esforco">
+                <option value="Baixo">Baixo</option>
+                <option value="Médio" selected>Médio</option>
+                <option value="Alto">Alto</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Score ROI (1-10)</label>
+              <input type="number" class="form-input" id="receita-score" min="1" max="10" value="5">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Equipe Responsável</label>
+            <input type="text" class="form-input" id="receita-equipe" placeholder="Ex: Francisco, Viviane">
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Observações</label>
+            <textarea class="form-textarea" id="receita-observacoes" placeholder="Notas sobre este contrato..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-receita')">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="submitReceita()">💾 Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+  
+  <!-- JavaScript -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
