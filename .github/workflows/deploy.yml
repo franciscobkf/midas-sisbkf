@@ -1,0 +1,30 @@
+name: 🚀 Deploy SIS Midas
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: 📤 Enviando para Hostgator
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Baixar código
+        uses: actions/checkout@v4
+
+      - name: 📤 Enviar via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: /
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/README.md
+            **/.gitignore
