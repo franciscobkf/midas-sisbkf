@@ -766,3 +766,4 @@ window.submitCategoria = window.saveCategoria;
 
 window.deleteFonte = async function(id) { if(confirm('Excluir?')) api('fontes_receita','DELETE',null,id).then(()=>{showToast('Removido'); loadConfiguracoes();}); }
 window.deleteCategoria = async function(id) { if(confirm('Excluir?')) api('categorias','DELETE',null,id).then(()=>{showToast('Removido'); loadConfiguracoes();}); }
+}
