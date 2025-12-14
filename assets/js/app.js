@@ -1,14 +1,5 @@
-/**
- * ============================================================
- * SIS MIDAS BKF - SISTEMA FINANCEIRO
- * JavaScript Principal - v3.22 (Master Fix)
- * ============================================================
- */
-
-// Configuração da API
 const API_BASE = 'api/';
 
-// Estado da aplicação
 const state = {
     mesAtual: new Date().toISOString().slice(0, 7),
     auxiliares: {
@@ -18,17 +9,13 @@ const state = {
         meses_disponiveis: [],
         cotacao: 6.00
     },
-    clientes: [], // Legacy
+    clientes: [],
     clientes_cadastro: [],
     receitas: [],
     despesas: [],
     lancamentos: [],
     dashboard: null
 };
-
-// ============================================================
-// UTILIDADES
-// ============================================================
 
 function formatMoney(value, currency = 'BRL') {
     const num = parseFloat(value) || 0;
@@ -61,10 +48,6 @@ function showToast(message, type = 'success') {
     setTimeout(() => { toast.remove() }, 4000);
 }
 
-// ============================================================
-// API HELPERS
-// ============================================================
-
 async function api(action, method = 'GET', data = null, id = null) {
     let url = `${API_BASE}index.php?action=${action}`;
     if (id) url += `&id=${id}`;
@@ -75,7 +58,6 @@ async function api(action, method = 'GET', data = null, id = null) {
     
     try {
         const response = await fetch(url, options);
-        // Tenta ler o JSON, se falhar (erro PHP), lança erro
         const text = await response.text();
         try {
             const result = JSON.parse(text);
@@ -90,10 +72,6 @@ async function api(action, method = 'GET', data = null, id = null) {
         throw error;
     }
 }
-
-// ============================================================
-// INICIALIZAÇÃO
-// ============================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadAuxiliares();
@@ -152,8 +130,8 @@ function navigateTo(page) {
         case 'receitas': loadReceitas(); break;
         case 'despesas': loadDespesas(); break;
         case 'lancamentos': loadLancamentos(); break;
-        case 'configuracoes': loadConfiguracoes(); break; // Agora carrega tudo!
-        case 'clientes': loadClientes(); break; // Legacy support
+        case 'configuracoes': loadConfiguracoes(); break;
+        case 'clientes': loadClientes(); break;
     }
     document.querySelector('.sidebar').classList.remove('open');
 }
@@ -163,10 +141,6 @@ function setupEventListeners() {
     document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); }));
     document.querySelectorAll('.modal-close').forEach(b => b.addEventListener('click', () => closeModal(b.closest('.modal-overlay').id)));
 }
-
-// ============================================================
-// DASHBOARD
-// ============================================================
 
 async function loadDashboard() {
     const container = document.getElementById('dashboard-content');
@@ -307,10 +281,6 @@ async function togglePago(id, currentStatus) {
     } catch (error) { showToast(error.message, 'error'); }
 }
 
-// ============================================================
-// RECEITAS / CONTRATOS
-// ============================================================
-
 async function loadReceitas() {
     const container = document.getElementById('receitas-list');
     container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
@@ -380,10 +350,6 @@ function renderReceitas() {
     });
     container.innerHTML = html;
 }
-
-// ============================================================
-// LANÇAMENTOS
-// ============================================================
 
 async function loadLancamentos() {
     const container = document.getElementById('lancamentos-list');
@@ -463,10 +429,6 @@ function renderLancamentos() {
 }
 
 function filtrarLancamentos(tipo) { window.filtroTipo = tipo; renderLancamentos(); }
-
-// ============================================================
-// CLIENTES CADASTRO (COMPLETA)
-// ============================================================
 
 async function loadClientesCadastro() {
     const container = document.getElementById('clientes-cadastro-list');
@@ -576,10 +538,6 @@ async function deleteClienteCadastro(id) {
     if(confirm('Excluir?')) api('clientes_cadastro', 'DELETE', null, id).then(() => { showToast('Excluído'); loadClientesCadastro(); }); 
 }
 
-// ============================================================
-// MODAIS E CRUD GERAL (Restaurado e Completo)
-// ============================================================
-
 function openReceitaModal(id=null) {
     const form = document.getElementById('form-receita'); form.reset(); form.dataset.id = id || '';
     const selC = document.getElementById('receita-cliente'); selC.innerHTML='<option value="">Selecione...</option>';
@@ -681,14 +639,10 @@ function saveLancamento(e) {
     api('lancamentos', id ? 'PUT' : 'POST', data, id).then(()=>{ showToast('Salvo!'); closeModal('modal-lancamento'); loadLancamentos(); });
 }
 
-// ----------------------------------------------------------------------------------
-// EXCLUSÃO INTELIGENTE DE LANÇAMENTOS (v3.19)
-// ----------------------------------------------------------------------------------
 async function deleteLancamento(id) {
     const lancamento = state.lancamentos.find(l => l.id === id);
     if (!lancamento) return;
 
-    // Se avulso (não tem vínculo com contrato pai)
     if (!lancamento.receita_id && !lancamento.despesa_id) {
         if (confirm('Excluir este lançamento avulso?')) {
             api('lancamento', 'DELETE', null, id).then(() => { showToast('Removido'); loadLancamentos(); });
@@ -696,7 +650,6 @@ async function deleteLancamento(id) {
         return;
     }
 
-    // Se recorrente, mostra modal de decisão
     const modalHtml = `
         <div class="modal-overlay active" id="modal-delete-decision" style="z-index:9999">
             <div class="modal" style="max-width:400px; margin:auto">
@@ -721,9 +674,6 @@ async function confirmDelete(id, scope) {
     } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ----------------------------------------------------------------------------------
-// FUNÇÕES DE CONFIGURAÇÃO (Restauradas)
-// ----------------------------------------------------------------------------------
 function openFonteModal(f=null) { openModal('modal-fonte'); }
 function openCategoriaModal(c=null) { openModal('modal-categoria'); }
 function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -734,7 +684,6 @@ function renderDespesas() {
     c.innerHTML = state.despesas.length ? `<div class="table-container"><table class="table"><thead><tr><th>Descrição</th><th>Categoria</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${state.despesas.map(d=>`<tr><td>${d.descricao}</td><td>${d.categoria_nome||'-'}</td><td>${formatMoney(d.valor, d.moeda)}</td><td><div class="table-actions"><button class="btn-icon" onclick="editDespesa(${d.id})">✏️</button><button class="btn-icon btn-delete" onclick="deleteDespesa(${d.id})">🗑️</button></div></td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">Nenhuma despesa.</div>'; 
 }
 
-// FIX: Carrega tudo o que a tela de configurações precisa
 function loadConfiguracoes() { 
     api('configuracoes').then(r=>{ document.getElementById('config-cotacao').value=r.data.cotacao_dolar; });
     loadFontes();
@@ -755,29 +704,23 @@ async function loadCategorias() {
 
 function saveConfiguracoes() { api('configuracoes', 'PUT', {cotacao_dolar: document.getElementById('config-cotacao').value}).then(()=>showToast('Salvo')); }
 
-// ----------------------------------------------------------------------------------
-// LEGACY SUPPORT (Compatibilidade com HTML antigo)
-// ----------------------------------------------------------------------------------
 async function loadClientes() { 
     const c = document.getElementById('clientes-list'); c.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
     api('clientes').then(r => { state.clientes = r.data; renderClientes(); });
 }
 function renderClientes() {
     const c = document.getElementById('clientes-list');
-    if(!state.clientes.length) { c.innerHTML='<div class="empty-state">Vazio</div>'; return; }
-    c.innerHTML = `<div class="table-container"><table class="table"><thead><tr><th>Cliente</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${state.clientes.map(cl => `<tr><td>${cl.razao_social}</td><td>${formatMoney(cl.valor_receitas)}</td><td><button class="btn-icon" onclick="deleteCliente(${cl.id})">🗑️</button></td></tr>`).join('')}</tbody></table></div>`;
+    if(!state.clientes.length) { 
+        c.innerHTML='<div class="empty-state">Nenhum cliente. <br><button class="btn btn-primary mt-2" onclick="openClienteCadastroModal()">➕ Novo Cliente</button></div>'; 
+        return; 
+    }
+    c.innerHTML = `<div class="table-container"><table class="table"><thead><tr><th>Cliente</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${state.clientes.map(cl => `<tr><td>${cl.razao_social}</td><td>${formatMoney(cl.valor_receitas)}</td><td><div class="table-actions"><button class="btn-icon" onclick="editClienteCadastro(${cl.id})">✏️</button><button class="btn-icon btn-danger" onclick="deleteClienteCadastro(${cl.id})">🗑️</button></div></td></tr>`).join('')}</tbody></table></div>`;
 }
-function openClienteModal() { openClienteCadastroModal(); /* Redireciona para o novo */ }
-function saveCliente(e) { if(e)e.preventDefault(); submitClienteCadastro(); }
-async function deleteCliente(id) { deleteClienteCadastro(id); }
 
-// ----------------------------------------------------------------------------------
-// EXPORTS GLOBAIS (Garante que o HTML ache as funções)
-// ----------------------------------------------------------------------------------
-window.openClienteModal = openClienteModal;
-window.editCliente = editCliente; // Se existir legacy
-window.saveCliente = saveCliente;
-window.deleteCliente = deleteCliente;
+window.openClienteModal = openClienteCadastroModal;
+window.editCliente = editClienteCadastro;
+window.saveCliente = function(e) { if(e)e.preventDefault(); submitClienteCadastro(); };
+window.deleteCliente = deleteClienteCadastro;
 window.openDespesaModal = openDespesaModal;
 window.editDespesa = editDespesa;
 window.saveDespesa = saveDespesa;
@@ -804,11 +747,11 @@ window.editReceita = editReceita;
 window.submitReceita = submitReceita;
 window.deleteReceita = deleteReceita;
 window.confirmDelete = confirmDelete;
-// Funções curtas de salvamento (Configurações)
+
 window.saveFonte = async function(e) { 
     if(e)e.preventDefault(); 
     const n = document.getElementById('fonte-nome').value; 
-    const d = document.getElementById('fonte-descricao').value; // CORRIGIDO: Agora pega a descrição
+    const d = document.getElementById('fonte-descricao').value; 
     api('fontes_receita','POST',{nome:n, descricao:d}).then(()=>{showToast('Salvo'); closeModal('modal-fonte'); loadConfiguracoes();}); 
 }
 window.submitFonte = window.saveFonte;
@@ -816,7 +759,7 @@ window.submitFonte = window.saveFonte;
 window.saveCategoria = async function(e) { 
     if(e)e.preventDefault(); 
     const n = document.getElementById('categoria-nome').value; 
-    const d = document.getElementById('categoria-descricao').value; // CORRIGIDO: Agora pega a descrição
+    const d = document.getElementById('categoria-descricao').value; 
     api('categorias','POST',{nome:n, descricao:d}).then(()=>{showToast('Salvo'); closeModal('modal-categoria'); loadConfiguracoes();}); 
 }
 window.submitCategoria = window.saveCategoria;
